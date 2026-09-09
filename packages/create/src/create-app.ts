@@ -5,8 +5,10 @@ import { formatCommand } from './utils.js'
 import { writeConfigFileToEnvironment } from './config-file.js'
 import {
   getPackageManagerScriptCommand,
+  intentCommand,
   packageManagerInstall,
   translateExecuteCommand,
+  validatePackageManagerSupport,
 } from './package-manager.js'
 import { createPackageJSON } from './package-json.js'
 import { resolvePackageJSONLatest } from './npm-resolver.js'
@@ -414,7 +416,7 @@ function buildNextSteps(options: Options): string {
   }
   if (options.intent) {
     sections.push(
-      `Working with an AI agent? Your agent config (AGENTS.md / CLAUDE.md) was wired up by TanStack Intent\nwith explicit skill mappings for the libraries you installed. Try asking your agent:\n  • "migrate this Next.js page to TanStack Start"\n  • "add a protected /dashboard route"\n  • "show me how to use TanStack Router search params"`,
+      `Working with an AI agent? Your agent config (AGENTS.md / CLAUDE.md) was wired up by TanStack Intent\nso your agent can discover skills for the libraries you installed, on demand:\n  • ${intentCommand(options.packageManager, ['list'])}\n  • ${intentCommand(options.packageManager, ['load', '<package>#<skill>'])}\nTry asking your agent:\n  • "migrate this Next.js page to TanStack Start"\n  • "add a protected /dashboard route"\n  • "show me how to use TanStack Router search params"`,
     )
   }
 
@@ -474,6 +476,7 @@ Please read the README.md file for information on ${readmeDescription}${errorSta
 }
 
 export async function createApp(environment: Environment, options: Options) {
+  validatePackageManagerSupport(options.packageManager, options.chosenAddOns)
   const effectiveOptions = stripExamplesFromOptions(options)
 
   environment.startRun()
